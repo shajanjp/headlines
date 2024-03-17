@@ -7,9 +7,13 @@
 #include "binaryttf.h"
 #include <WiFi.h>
 #include "config.h"
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
 
 M5EPD_Canvas canvas(&M5.EPD);
 rtc_time_t RTCtime;
+DynamicJsonDocument doc(1024); // Adjust size as needed
+int feedIndex = 0;
 
 void shutdown()
 {
@@ -40,13 +44,17 @@ void displayImage()
   M5.EPD.Clear(true);
   canvas.deleteCanvas();
   canvas.createCanvas(540, 960);
-  canvas.drawJpgUrl("https://i.imgur.com/wBmYZJn.jpeg"); // shajan
+  // canvas.drawJpgUrl("https://i.imgur.com/wBmYZJn.jpeg"); // shajan
+  canvas.drawJpgUrl("https://i.imgur.com/5en8XJ1.jpeg"); // leaf
   canvas.pushCanvas(0, 0, UPDATE_MODE_GC16);
 }
 
-void displayStory()
+void displayStory(String text)
 {
-  String text = "Once upon a time, in a peaceful forest, lived a swift rabbit and a slow tortoise. The rabbit, proud of his speed, often teased the tortoise for his slowness. Irritated by the rabbit's arrogance, the tortoise proposed a race to settle the matter once and for all. The rabbit, amused by the idea, readily agreed, confident in his ability to win easily. As the race commenced, the rabbit dashed ahead, leaving the tortoise far behind. His confidence soared as he watched the slow progress of his competitor. Feeling assured of victory, the rabbit decided to take a nap under a shady tree, believing he had ample time to rest and still win. Meanwhile, the tortoise trudged along steadily, undeterred by the rabbit's lead. Slow and steady, he focused on the path ahead, determined to reach the finish line. As the sun climbed higher, the rabbit's slumber deepened, oblivious to the passing time. Unexpectedly, the rabbit awoke to find the tortoise near the finish line. Shocked and panicked, he sprinted with all his might, but it was too late. With a final surge of determination, the tortoise crossed the finish line, winning the race. The forest erupted in cheers as the tortoise celebrated his victory.";
+  M5.EPD.Clear(true);
+  // String text = "Once upon a time, in a peaceful forest, lived a swift rabbit and a slow tortoise. The rabbit, proud of his speed, often teased the tortoise for his slowness. Irritated by the rabbit's arrogance, the tortoise proposed a race to settle the matter once and for all. The rabbit, amused by the idea, readily agreed, confident in his ability to win easily. As the race commenced, the rabbit dashed ahead, leaving the tortoise far behind. His confidence soared as he watched the slow progress of his competitor. Feeling assured of victory, the rabbit decided to take a nap under a shady tree, believing he had ample time to rest and still win. Meanwhile, the tortoise trudged along steadily, undeterred by the rabbit's lead. Slow and steady, he focused on the path ahead, determined to reach the finish line. As the sun climbed higher, the rabbit's slumber deepened, oblivious to the passing time. Unexpectedly, the rabbit awoke to find the tortoise near the finish line. Shocked and panicked, he sprinted with all his might, but it was too late. With a final surge of determination, the tortoise crossed the finish line, winning the race. The forest erupted in cheers as the tortoise celebrated his victory.";
+ canvas.deleteCanvas();
+  canvas.createCanvas(540, 960);
   canvas.createRender(32, 256);
   canvas.setTextSize(32);
   canvas.setTextDatum(MC_DATUM);
@@ -86,21 +94,61 @@ void setup()
   Serial.begin(115200);
 
   connectToWifi();
+  getAndSetFeedData();
   M5.EPD.SetRotation(90);
   M5.EPD.Clear(true);
   canvas.loadFont(binaryttf, sizeof(binaryttf)); // Load font files from binary data
   canvas.createCanvas(520, 940);
 
-  displayStory();
+  displayStory("this is default text");
+}
+
+void getAndSetFeedData(){
+  // Your API endpoint
+  String url = "https://solstice-ahead-swallow.glitch.me/feed";
+  
+  // Send the HTTP request
+  HTTPClient http;
+  http.begin(url);
+  int httpResponseCode = http.GET();
+  
+  // Check for successful response
+  if (httpResponseCode > 0) {
+    // Parse JSON
+    String payload = http.getString();
+    deserializeJson(doc, payload);
+    
+    // Loop through the array
+    for (int i = 0; i < doc.size(); i++) {
+      JsonObject obj = doc[i];
+      // Extract values
+      String category = obj["category"];
+      String icon = obj["icon"];
+      String content = obj["content"];
+      
+      // Print values
+      Serial.print("Category: ");
+      Serial.println(category);
+      Serial.print("Icon URL: ");
+      Serial.println(icon);
+      Serial.print("Content: ");
+      Serial.println(content);
+    }
+  } else {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
 }
 
 void loop()
 {
   M5.update();
+  
   if (M5.BtnP.wasPressed())
   {
     Serial.println("Left button pressed");
-    displayClock();
+    displayImage();
     delay(1000);
     shutdown();
   }
@@ -108,8 +156,13 @@ void loop()
   if (M5.BtnR.wasPressed())
   {
     Serial.println("Left button pressed");
-    displayStory();
-    delay(1000);
+    displayStory(doc[feedIndex]["category"]);
+    Serial.println(feedIndex);
+    feedIndex++;
+    if(feedIndex == doc.size()) {
+      feedIndex = 0;
+    }
   }
-  delay(100);
+
+  delay(50);
 }
