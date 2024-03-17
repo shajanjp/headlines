@@ -10,7 +10,6 @@
 
 M5EPD_Canvas canvas(&M5.EPD);
 rtc_time_t RTCtime;
-char timeStrbuff[64];
 
 void shutdown()
 {
@@ -28,6 +27,7 @@ void displayClock()
   canvas.createRender(64, 256);
   canvas.setTextSize(64);
   canvas.setTextDatum(MC_DATUM);
+  char timeStrbuff[64];
   M5.RTC.getTime(&RTCtime);
   sprintf(timeStrbuff, "%02d:%02d", RTCtime.hour, RTCtime.min);
   Serial.print(timeStrbuff);
@@ -56,7 +56,6 @@ void displayStory()
 
 void connectToWifi()
 {
-  // Connect to WiFi
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
 
@@ -73,8 +72,9 @@ void connectToWifi()
 
 void setTime()
 {
-  RTCtime.hour = 07;
-  RTCtime.min = 53;
+ 
+  RTCtime.hour = 16;
+  RTCtime.min = 19;
   RTCtime.sec = 00;
   M5.RTC.setTime(&RTCtime);
 }
@@ -82,10 +82,10 @@ void setTime()
 void setup()
 {
   M5.begin(false, false, true, false, false);
+  M5.RTC.begin();
   Serial.begin(115200);
-  // setTime();
-  connectToWifi();
 
+  connectToWifi();
   M5.EPD.SetRotation(90);
   M5.EPD.Clear(true);
   canvas.loadFont(binaryttf, sizeof(binaryttf)); // Load font files from binary data
