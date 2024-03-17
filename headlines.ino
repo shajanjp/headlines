@@ -100,7 +100,7 @@ void setup()
   canvas.loadFont(binaryttf, sizeof(binaryttf)); // Load font files from binary data
   canvas.createCanvas(520, 940);
 
-  displayStory("this is default text");
+  displayStory(doc[feedIndex]["content"]);
 }
 
 void getAndSetFeedData(){
@@ -156,7 +156,7 @@ void loop()
   if (M5.BtnR.wasPressed())
   {
     Serial.println("Left button pressed");
-    displayStory(doc[feedIndex]["category"]);
+    displayStory(doc[feedIndex]["content"]);
     Serial.println(feedIndex);
     feedIndex++;
     if(feedIndex == doc.size()) {
