@@ -53,13 +53,16 @@ void displayStory(String text)
 {
   M5.EPD.Clear(true);
   // String text = "Once upon a time, in a peaceful forest, lived a swift rabbit and a slow tortoise. The rabbit, proud of his speed, often teased the tortoise for his slowness. Irritated by the rabbit's arrogance, the tortoise proposed a race to settle the matter once and for all. The rabbit, amused by the idea, readily agreed, confident in his ability to win easily. As the race commenced, the rabbit dashed ahead, leaving the tortoise far behind. His confidence soared as he watched the slow progress of his competitor. Feeling assured of victory, the rabbit decided to take a nap under a shady tree, believing he had ample time to rest and still win. Meanwhile, the tortoise trudged along steadily, undeterred by the rabbit's lead. Slow and steady, he focused on the path ahead, determined to reach the finish line. As the sun climbed higher, the rabbit's slumber deepened, oblivious to the passing time. Unexpectedly, the rabbit awoke to find the tortoise near the finish line. Shocked and panicked, he sprinted with all his might, but it was too late. With a final surge of determination, the tortoise crossed the finish line, winning the race. The forest erupted in cheers as the tortoise celebrated his victory.";
- canvas.deleteCanvas();
+  canvas.deleteCanvas();
   canvas.createCanvas(540, 960);
   canvas.createRender(32, 256);
   canvas.setTextSize(32);
-  canvas.setTextDatum(MC_DATUM);
+  canvas.setTextArea(10, 10, 520, 870);
+  canvas.setTextPadding(10);
+  canvas.setTextWrap(true, true);
+  // canvas.setTextDatum(MC_DATUM);
   canvas.print(text);
-  canvas.pushCanvas(10, 10, UPDATE_MODE_GC16);
+  canvas.pushCanvas(0, 0, UPDATE_MODE_GC16);
 }
 
 void connectToWifi()
@@ -80,7 +83,6 @@ void connectToWifi()
 
 void setTime()
 {
- 
   RTCtime.hour = 16;
   RTCtime.min = 19;
   RTCtime.sec = 00;
@@ -98,8 +100,6 @@ void setup()
   M5.EPD.SetRotation(90);
   M5.EPD.Clear(true);
   canvas.loadFont(binaryttf, sizeof(binaryttf)); // Load font files from binary data
-  canvas.createCanvas(520, 940);
-
   displayStory(doc[feedIndex]["content"]);
 }
 
